@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+    <div class="max-w-md w-full bg-white shadow-lg rounded-lg p-8">
+      <div class="text-center mb-6">
+        <h1 class="text-2xl font-semibold text-gray-800">Sign in to your account</h1>
+        <p class="text-sm text-gray-500 mt-1">Welcome back — enter your details to continue</p>
+      </div>
+
+      {% if messages %}
+      <div class="mb-4">
+        {% for message in messages %}
+        <div class="p-3 rounded-md text-sm {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <form method="post" class="space-y-4">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="bg-red-50 text-red-700 p-3 rounded">
+          {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div>
+          <label for="id_username" class="block text-sm font-medium text-gray-700">User name</label>
+          <input id="id_username" name="username" type="text" required class="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+          {% if form.username.errors %}
+          <p class="text-xs text-red-600 mt-1">{{ form.username.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="id_password" class="block text-sm font-medium text-gray-700">Password</label>
+          <input id="id_password" name="password" type="password" required class="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+          {% if form.password.errors %}
+          <p class="text-xs text-red-600 mt-1">{{ form.password.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div class="flex items-center justify-between">
+          <label class="inline-flex items-center text-sm">
+            <input type="checkbox" name="remember" class="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
+            <span class="ml-2 text-gray-600">Remember me</span>
+          </label>
+          <a href="{% url 'password_reset' %}" class="text-sm text-indigo-600 hover:underline">Forgot password?</a>
+        </div>
+
+        <div>
+          <button type="submit" class="w-full inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            Sign in
+          </button>
+        </div>
+
+        <p class="text-center text-sm text-gray-500">
+          Don't have an account?
+          <a href="{% url 'signup' %}" class="text-indigo-600 hover:underline">Sign up</a>
+        </p>
+      </form>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var el = document.getElementById("id_username");
+        if (el) el.focus();
+      });
+    </script>
+  </body>
+</html>
