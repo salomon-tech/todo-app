@@ -1,0 +1,136 @@
+
+{% load static %}
+<!doctype html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>My Tasks — Todo</title>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+		<style>
+			:root{
+				--bg:#0f1724; --card:#0b1220; --muted:#9aa4b2; --accent:#6ee7b7; --danger:#ff7a7a; --glass:rgba(255,255,255,0.04);
+			}
+			*{box-sizing:border-box}
+			body{font-family:'Inter',system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,#071126 0%, #0b1220 100%);color:#e6eef8;margin:0;min-height:100vh;padding:32px}
+			.container{max-width:1100px;margin:0 auto}
+			header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+			.brand{display:flex;gap:12px;align-items:center}
+			.logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#3dd9ff);display:flex;align-items:center;justify-content:center;color:#042; font-weight:700}
+			h1{font-size:20px;margin:0}
+			p.lead{color:var(--muted);margin:0;font-size:13px}
+
+			.panel{background:var(--card);border-radius:12px;padding:20px;box-shadow:0 6px 24px rgba(2,6,23,0.6);backdrop-filter:blur(6px)}
+			.grid{display:grid;grid-template-columns:1fr 360px;gap:20px}
+
+			/* Form */
+			.add-form input,.add-form textarea,.add-form select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:inherit;margin-bottom:10px}
+			.add-form .row{display:flex;gap:8px}
+			.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:600}
+			.btn-primary{background:var(--accent);color:#042}
+			.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--accent)}
+
+			/* Todo list */
+			.task-list{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+			.task{display:flex;align-items:flex-start;gap:12px;padding:14px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border:1px solid rgba(255,255,255,0.02)}
+			.task .meta{flex:1}
+			.task h3{margin:0;font-size:15px}
+			.task p{margin:6px 0 0;color:var(--muted);font-size:13px}
+			.task .badges{margin-top:8px;display:flex;gap:8px}
+			.badge{padding:6px 8px;border-radius:999px;font-size:12px;background:rgba(255,255,255,0.03);color:var(--muted)}
+			.priority-high{background:linear-gradient(90deg,#ff9a8b,#ff7a7a);color:#250800}
+			.priority-medium{background:linear-gradient(90deg,#ffd07a,#ffb86b);color:#331b00}
+			.priority-low{background:linear-gradient(90deg,#9af5b8,#6ee7b7);color:#032913}
+
+			.task-actions{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+			.small{font-size:12px;color:var(--muted)}
+
+			/* Responsive */
+			@media (max-width:900px){.grid{grid-template-columns:1fr}.task-actions{flex-direction:row;align-items:center}}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<header>
+				<div class="brand">
+					<div class="logo">TD</div>
+					<div>
+					<h1>Professional Todo</h1>
+					<p class="lead">Organize your tasks, priorities and deadlines — simple and effective.</p>
+					</div>
+				</div>
+				<div class="user-info">
+					{% if user.is_authenticated %}
+						<div class="small">Logged in as <strong>{{ user.username }}</strong></div>
+					{% else %}
+						<a href="{% url 'login' %}" class="small">Log in</a>
+					{% endif %}
+				</div>
+			</header>
+
+			<div class="grid">
+				<main>
+					<div class="panel">
+						<div style="display:flex;justify-content:space-between;align-items:center">
+						<h2 style="margin:0">Tasks</h2>
+						<div class="small">{{ todos|length }} tasks</div>
+						</div>
+
+						<div class="task-list">
+							{% for todo in todos %}
+							<div class="task">
+								<div class="meta">
+									<h3>{{ todo.title }}</h3>
+									{% if todo.description %}<p>{{ todo.description }}</p>{% endif %}
+									<div class="badges">
+										<span class="badge">Due: {{ todo.due_date|default:'—' }}</span>
+											<span class="badge {% if todo.priority == 'H' %}priority-high{% elif todo.priority == 'M' %}priority-medium{% else %}priority-low{% endif %}">Priority: {{ todo.get_priority_display }}</span>
+											{% if todo.completed %}<span class="badge" style="background:rgba(110,231,183,0.12);color:var(--accent)">Completed</span>{% endif %}
+									</div>
+								</div>
+								<div class="task-actions">
+									<form method="post" action="{% url 'toggle' todo.id %}">{% csrf_token %}<button class="btn btn-ghost" title="Toggle">{% if todo.completed %}Reopen{% else %}Complete{% endif %}</button></form>
+									<div style="display:flex;gap:8px">
+										<a href="{% url 'edit' todo.id %}" class="btn" style="background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)">Edit</a>
+										<form method="post" action="{% url 'delete' todo.id %}" onsubmit="return confirm('Delete this task?');">{% csrf_token %}<button class="btn" style="background:var(--danger);color:#fff">Delete</button></form>
+									</div>
+								</div>
+							</div>
+							{% empty %}
+							<div class="task" style="justify-content:center"><p class="lead">No tasks — add one on the right.</p></div>
+							{% endfor %}
+						</div>
+					</div>
+				</main>
+
+				<aside>
+					<div class="panel">
+					<h3 style="margin-top:0">Add a Task</h3>
+					<form class="add-form" method="post" action="{% url 'add' %}">{% csrf_token %}
+						<input name="title" placeholder="Title (ex: Prepare report)" required />
+						<textarea name="description" rows="3" placeholder="Description (optional)"></textarea>
+							<div class="row">
+								<input name="due_date" type="date" />
+								<select name="priority">
+								<option value="M">Medium</option>
+								<option value="H">High</option>
+								<option value="L">Low</option>
+								</select>
+							</div>
+							<div style="display:flex;gap:8px;margin-top:8px">
+							<button class="btn btn-primary" type="submit">Add</button>
+							<button class="btn btn-ghost" type="reset">Reset</button>
+							</div>
+						</form>
+						<hr style="border:none;border-top:1px solid rgba(255,255,255,0.02);margin:16px 0">
+						<div>
+						<h4 style="margin:0 0 8px 0">Shortcuts</h4>
+						<div class="small">- Check 'Complete' to mark done.</div>
+						<div class="small">- Use Priority and Due date to sort.</div>
+						</div>
+					</div>
+				</aside>
+			</div>
+		</div>
+	</body>
+</html>
